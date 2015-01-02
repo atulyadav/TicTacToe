@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>github-nuget-distributor.GithubNugetDistributor</id>
+    <version>1.0.23</version>
+    <authors>Mathias Lykkegaard Lorenzen</authors>
+    <owners>Mathias Lykkegaard Lorenzen</owners>
+    <projectUrl>https://github.com/ffMathy/github-nuget-distributor</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>This tool allows you to publish all (or specific) projects from your Github account directly into Nuget.</description>
+    <releaseNotes />
+    <copyright>Copyright 2014</copyright>
+    <dependencies>
+      <dependency id="Common.Logging" version="2.0.0" />
+      <dependency id="Octokit" version="0.4.1" />
+      <dependency id="Spring.Social.Core" version="1.0.0" />
+    </dependencies>
+    <references>
+      <reference file="GithubNugetDistributor.exe" />
+    </references>
+  </metadata>
+</package>
