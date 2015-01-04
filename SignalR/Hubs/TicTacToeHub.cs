@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using Microsoft.AspNet.SignalR;
+using Microsoft.AspNet.SignalR.Hubs;
 using SignalR.TicTacToeLib;
 
 namespace SignalR.Hubs
@@ -24,13 +25,13 @@ namespace SignalR.Hubs
 
             if (ConnectedUsers.Count(x => x.ConnectionId == id) == 0)
             {
-                ConnectedUsers.Add(new UserDetail { ConnectionId = id, UserName = userName });
+                ConnectedUsers.Add(new UserDetail { ConnectionId = id, UserName = userName, Status = "off" });
 
                 // send to caller
                 Clients.Caller.onConnected(id, userName, ConnectedUsers, CurrentMessage);
 
                 // send to all except caller client
-                Clients.AllExcept(id).onNewUserConnected(id, userName);
+                Clients.AllExcept(id).onNewUserConnected(id, userName, ConnectedUsers);
 
             }
 
@@ -64,20 +65,36 @@ namespace SignalR.Hubs
 
         }
 
-        public override System.Threading.Tasks.Task OnDisconnected()
+        //public override System.Threading.Tasks.Task OnDisconnected()
+        //{
+        //    var item = ConnectedUsers.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
+        //    if (item != null)
+        //    {
+        //        ConnectedUsers.Remove(item);
+
+        //        var id = Context.ConnectionId;
+        //        Clients.All.onUserDisconnected(id, item.UserName);
+
+        //    }
+
+        //    return base.OnDisconnected();
+        //}
+
+        public override System.Threading.Tasks.Task OnConnected()
         {
-            var item = ConnectedUsers.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
-            if (item != null)
-            {
-                ConnectedUsers.Remove(item);
+            //    var item = ConnectedUsers.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
+            //    if (item != null)
+            //    {
+            //        ConnectedUsers.Remove(item);
 
-                var id = Context.ConnectionId;
-                Clients.All.onUserDisconnected(id, item.UserName);
+            //        var id = Context.ConnectionId;
+            //        Clients.All.onUserDisconnected(id, item.UserName);
 
-            }
+            //    }
 
-            return base.OnDisconnected();
+            return base.OnConnected();
         }
+
         #endregion
 
         public void OnlineUserList()
