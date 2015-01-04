@@ -80,6 +80,11 @@ namespace SignalR.Hubs
         }
         #endregion
 
+        public void OnlineUserList()
+        {
+            Clients.All.onlineUserList(ConnectedUsers);
+        }
+
         public void Hello()
         {
             Clients.All.hello();

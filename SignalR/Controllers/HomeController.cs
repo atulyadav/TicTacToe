@@ -35,5 +35,12 @@ namespace SignalR.Controllers
 
             return View();
         }
+
+        public ActionResult TicTacToe1()
+        {
+            ViewBag.Message = "Modify this template to jump-start your ASP.NET MVC application.";
+
+            return View();
+        }
     }
 }
