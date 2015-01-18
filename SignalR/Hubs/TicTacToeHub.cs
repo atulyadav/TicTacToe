@@ -5,6 +5,7 @@ using System.Web;
 using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
 using SignalR.TicTacToeLib;
+using System.Threading.Tasks;
 
 namespace SignalR.Hubs
 {
@@ -14,6 +15,7 @@ namespace SignalR.Hubs
 
         static List<UserDetail> ConnectedUsers = new List<UserDetail>();
         static List<MessageDetail> CurrentMessage = new List<MessageDetail>();
+        static List<string> groupNames = new List<string>();
 
         #endregion
 
@@ -32,6 +34,9 @@ namespace SignalR.Hubs
 
                 // send to all except caller client
                 Clients.AllExcept(id).onNewUserConnected(id, userName, ConnectedUsers);
+
+                // upadte connected user list
+                Clients.All.onlineUserList(ConnectedUsers);
 
             }
 
@@ -64,24 +69,10 @@ namespace SignalR.Hubs
             }
 
         }
-
-        //public override System.Threading.Tasks.Task OnDisconnected()
-        //{
-        //    var item = ConnectedUsers.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
-        //    if (item != null)
-        //    {
-        //        ConnectedUsers.Remove(item);
-
-        //        var id = Context.ConnectionId;
-        //        Clients.All.onUserDisconnected(id, item.UserName);
-
-        //    }
-
-        //    return base.OnDisconnected();
-        //}
-
+        
         public override System.Threading.Tasks.Task OnConnected()
         {
+            
             //    var item = ConnectedUsers.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
             //    if (item != null)
             //    {
@@ -95,16 +86,128 @@ namespace SignalR.Hubs
             return base.OnConnected();
         }
 
+        public override System.Threading.Tasks.Task OnDisconnected(bool stopCalled)
+        {
+            if (ConnectedUsers.Any(c => c.ConnectionId == Context.ConnectionId))
+            {
+                var user = ConnectedUsers.First(u => u.ConnectionId == Context.ConnectionId);
+                ConnectedUsers.Remove(user);
+            }
+
+            if (groupNames.Any(g => g.Contains(Context.ConnectionId)))
+            {
+                var groupToBeRemoved = groupNames.Where(g => g.Contains(Context.ConnectionId)).FirstOrDefault();
+                groupNames.Remove(groupToBeRemoved);
+            }
+            return base.OnDisconnected(stopCalled);
+        }
+
+        //public override Task OnReconnected()
+        //{
+        //    string name = Context.User.Identity.Name;
+
+        //    if (!ConnectedUsers.Any(c => c.ConnectionId == Context.ConnectionId))
+        //    {
+        //        var user = ConnectedUsers.First(u => u.ConnectionId == Context.ConnectionId);
+        //        ConnectedUsers.Remove(user);
+        //    }
+
+        //    return base.OnReconnected();
+        //}
         #endregion
 
         public void OnlineUserList()
         {
-            Clients.All.onlineUserList(ConnectedUsers);
+           Clients.All.onlineUserList(ConnectedUsers);
         }
 
-        public void Hello()
+        public void SetupStatus()
         {
-            Clients.All.hello();
+            Clients.Caller.setupComplete();
         }
+
+        public async Task RequestToConnectionId(string requestToConnectionId)
+        {
+            // Call and await in separate statements.
+            Task<bool> isSuccess = AddToGroup(requestToConnectionId);
+            if(groupNames != null && groupNames.Any(g=>g.Contains(requestToConnectionId) && !g.Contains(Context.ConnectionId)))
+            {
+                Clients.Caller.opponentIsOccupied();
+                return;
+            }
+            
+            if (await isSuccess)
+            {
+                var group = groupNames.Where(g=>g.Contains(requestToConnectionId)).FirstOrDefault();
+                Clients.Group(group).playersReadyToPlay(group);
+                Clients.Group(group, Context.ConnectionId).playYourTurn();
+            }
+            else
+            {
+                Clients.Caller.opponentNotConnected();
+            }
+        }
+
+        public async Task<bool> AddToGroup(string requestToConnectionId)
+        {
+            string id = Context.ConnectionId;
+            string groupName = string.Format(id + "/" + requestToConnectionId);
+            string rGroupName = string.Format(requestToConnectionId + "/" + id );
+            bool isBothUserConnected;
+            if (groupNames.Any(g => g.Contains(id) || g.Contains(requestToConnectionId)))
+            {
+                if(groupNames.Any(g => g.Contains(groupName) || g.Contains(rGroupName)))
+                {
+                    var duplicateName = groupNames.Where(g => g.Contains(groupName) || g.Contains(rGroupName));
+                    if (duplicateName.Count() > 1)
+                    {
+                        groupNames.RemoveAll(g => g.Contains(groupName) || g.Contains(rGroupName));
+                        groupNames.Add(groupName);
+                    }
+                }
+            }
+            
+            if (this.CheckClientExist(requestToConnectionId))
+            {
+                try
+                {
+                    await Groups.Add(id, groupName);
+                    await Groups.Add(requestToConnectionId, groupName);
+                    isBothUserConnected = true;
+                    if (groupNames != null && groupName.Count() > 0)
+                    {
+                        if(!groupNames.Any(g => g.Equals(groupName)))
+                        {
+                            groupNames.Add(groupName);
+                        }
+                    }
+                    
+                }
+                catch(Exception ex)
+                {
+                    isBothUserConnected = false;
+                }
+            }
+            else
+            {
+                // client is not connected
+                isBothUserConnected = false;
+            }
+            return isBothUserConnected;
+        }
+
+        private bool CheckClientExist(string id)
+        {   
+            return ConnectedUsers.Any(u => u.ConnectionId == id);
+        }
+
+        public void PlayYourTurn(string groupName)
+        {
+            if (groupNames.Any(g => g.Contains(groupName)))
+            {
+                Clients.Group(groupName, Context.ConnectionId).playYourTurn();
+            }
+        }
+
     }
 }

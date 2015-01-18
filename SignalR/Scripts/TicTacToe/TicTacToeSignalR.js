@@ -18,6 +18,7 @@ $(document).ready(function () {
 
     $.connection.hub.start().done(function () {
         console.log("connection.hub.start() : connected");
+        ticTacToeHub.server.setupStatus();
     }).fail(function () {
         alert("connection.hub.start() failed");
     });
@@ -91,6 +92,13 @@ function registerClientMethods(ticTacToeHub) {
     // On New User Connected
     ticTacToeHub.client.onNewUserConnected = function (id, name, connectedUsers) {
 
+        var $connectionResult = $('#connection-result');
+        $connectionResult.text("onNewUserConnected : " + id + " " + userName);
+        updateOnlineUserList(connectedUsers);
+    }
+
+    // On setup complete
+    ticTacToeHub.client.setupComplete = function () {
         var $connectionResult = $('#connection-result');
         $connectionResult.text("onNewUserConnected : " + id + " " + userName);
         updateOnlineUserList(connectedUsers);

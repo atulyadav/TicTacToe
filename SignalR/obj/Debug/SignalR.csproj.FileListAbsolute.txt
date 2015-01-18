@@ -203,3 +203,4 @@ C:\Users\ayadav\Documents\Visual Studio 2012\Projects\SignalR\SignalR\bin\Autofa
 C:\Users\ayadav\Documents\Visual Studio 2012\Projects\SignalR\SignalR\bin\Microsoft.AspNet.SignalR.Client.xml
 C:\Users\ayadav\Documents\Visual Studio 2012\Projects\SignalR\SignalR\bin\Microsoft.Owin.xml
 C:\Users\ayadav\Documents\Visual Studio 2012\Projects\SignalR\SignalR\bin\Microsoft.Owin.Security.xml
+F:\VSWorkspace\TicTacToe\SignalR\obj\Debug\SignalR.csprojResolveAssemblyReference.cache
