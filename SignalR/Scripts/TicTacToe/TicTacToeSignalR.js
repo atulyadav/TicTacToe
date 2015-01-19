@@ -1,4 +1,5 @@
 ﻿var currentUserName;
+var connectedToOpponent = false;
 
 $(document).ready(function () {
     console.log("ready!");
@@ -40,13 +41,14 @@ $(document).ready(function () {
 function updateOnlineUserList(onlineUsers) {
     var users = humps.camelizeKeys(onlineUsers);
     var $result = $('#events-result');
-  
+
     $('#onlineUserList').bootstrapTable({
         data: users
     }).on('all.bs.table', function (e, name, args) {
         console.log('Event:', name, ', data:', args);
     }).on('click-row.bs.table', function (e, row, $element) {
         $result.text('Event: click-row.bs.table, data: ' + JSON.stringify(row));
+        connectToOpponent(row);
     }).on('dbl-click-row.bs.table', function (e, row, $element) {
         $result.text('Event: dbl-click-row.bs.table, data: ' + JSON.stringify(row));
     }).on('load-success.bs.table', function (e, data) {
@@ -54,7 +56,21 @@ function updateOnlineUserList(onlineUsers) {
     }).on('load-error.bs.table', function (e, status) {
         $result.text('Event: load-error.bs.table, data: ' + status);
     });
+}
 
+function connectToOpponent(row) {
+    
+    console.log("row = " + row.connectionId);
+    if (!connectedToOpponent && row.connectionId != "") {
+        connectedToOpponent = true;
+        ticTacToeHub.server.requestToConnectionId(row.connectionId).done(function (result) {
+            console.log("ticTacToeHub.server.requestToConnectionId - successful " + result);
+            connectedToOpponent = true;
+        }).fail(function (result) {
+            console.log("ticTacToeHub.server.requestToConnectionId - failed " + result);
+            connectedToOpponent = false;
+        });
+    }
 }
 
 function setScreen(isLogin) {
@@ -99,9 +115,10 @@ function registerClientMethods(ticTacToeHub) {
 
     // On setup complete
     ticTacToeHub.client.setupComplete = function () {
-        var $connectionResult = $('#connection-result');
-        $connectionResult.text("onNewUserConnected : " + id + " " + userName);
-        updateOnlineUserList(connectedUsers);
+        //var $connectionResult = $('#connection-result');
+        //$connectionResult.text("onNewUserConnected : " + id + " " + userName);
+
+        //updateOnlineUserList(connectedUsers);
     }
 
     //// On User Disconnected
@@ -128,11 +145,15 @@ function registerClientMethods(ticTacToeHub) {
 
 function registerEvents(ticTacToeHub) {
     if ($.trim(currentUserName) != '') {
-        ticTacToeHub.server.connect(currentUserName);
-        var $connectionResult = $('#connection-result');
-        $connectionResult.text("you are connected" + userName);
+        ticTacToeHub.server.connect(currentUserName).done(function () {
+            console.log("ticTacToeHub.server.connect - successful");
+            connectedToOpponent = true;
+        }).fail(function () {
+            console.log("ticTacToeHub.server.connect - failed");
+        });
+        //var $connectionResult = $('#connection-result');
+        //$connectionResult.text("you are connected" + userName);
     }
-
 }
 
 function getUserAndConnect() {

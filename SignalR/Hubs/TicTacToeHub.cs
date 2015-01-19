@@ -126,25 +126,27 @@ namespace SignalR.Hubs
             Clients.Caller.setupComplete();
         }
 
-        public async Task RequestToConnectionId(string requestToConnectionId)
+        public async Task<bool> RequestToConnectionId(string requestToConnectionId)
         {
-            // Call and await in separate statements.
-            Task<bool> isSuccess = AddToGroup(requestToConnectionId);
             if(groupNames != null && groupNames.Any(g=>g.Contains(requestToConnectionId) && !g.Contains(Context.ConnectionId)))
             {
                 Clients.Caller.opponentIsOccupied();
-                return;
+                return false;
             }
-            
+
+            // Call and await in separate statements.
+            Task<bool> isSuccess = AddToGroup(requestToConnectionId);
             if (await isSuccess)
             {
                 var group = groupNames.Where(g=>g.Contains(requestToConnectionId)).FirstOrDefault();
                 Clients.Group(group).playersReadyToPlay(group);
                 Clients.Group(group, Context.ConnectionId).playYourTurn();
+                return await isSuccess;
             }
             else
             {
                 Clients.Caller.opponentNotConnected();
+                return await isSuccess;
             }
         }
 
