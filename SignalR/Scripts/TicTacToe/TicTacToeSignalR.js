@@ -19,7 +19,7 @@ $(document).ready(function () {
 
     $.connection.hub.start().done(function () {
         console.log("connection.hub.start() : connected");
-        ticTacToeHub.server.setupStatus();
+        // ticTacToeHub.server.setupStatus();
     }).fail(function () {
         alert("connection.hub.start() failed");
     });
@@ -63,14 +63,27 @@ function connectToOpponent(row) {
     console.log("row = " + row.connectionId);
     if (!connectedToOpponent && row.connectionId != "") {
         connectedToOpponent = true;
-        ticTacToeHub.server.requestToConnectionId(row.connectionId).done(function (result) {
+        ticTacToeHub.server.requestToConnectionId(JSON.stringify(JSONObject)(row)).done(function (result) {
             console.log("ticTacToeHub.server.requestToConnectionId - successful " + result);
-            connectedToOpponent = true;
-        }).fail(function (result) {
+        }).fail(function (error) {
             console.log("ticTacToeHub.server.requestToConnectionId - failed " + result);
             connectedToOpponent = false;
         });
     }
+}
+
+ticTacToeHub.client.playersReadyToPlay = function (user, opponentUserName) {
+    var JSONObject = jQuery.parseJSON(user);
+    if (JSONObject.ConnectionId == ticTacToeHub.id) {
+        console.log("playersReadyToPlay :: you are requested to play with... " + opponentUserName);
+    } else {
+        console.log("playersReadyToPlay :: your opponent is connected...");
+    }
+    // var connectionIds [] = result.split("/");
+}
+
+function playYourTurn() {
+
 }
 
 function setScreen(isLogin) {
@@ -147,7 +160,7 @@ function registerEvents(ticTacToeHub) {
     if ($.trim(currentUserName) != '') {
         ticTacToeHub.server.connect(currentUserName).done(function () {
             console.log("ticTacToeHub.server.connect - successful");
-            connectedToOpponent = true;
+            // connectedToOpponent = true;
         }).fail(function () {
             console.log("ticTacToeHub.server.connect - failed");
         });

@@ -6,6 +6,7 @@ using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
 using SignalR.TicTacToeLib;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace SignalR.Hubs
 {
@@ -126,8 +127,10 @@ namespace SignalR.Hubs
             Clients.Caller.setupComplete();
         }
 
-        public async Task<bool> RequestToConnectionId(string requestToConnectionId)
+        public async Task<bool> RequestToConnectionId(string user)
         {
+            UserDetail userDetail = JsonConvert.DeserializeObject(user) as UserDetail;
+            string requestToConnectionId = userDetail.ConnectionId;
             if(groupNames != null && groupNames.Any(g=>g.Contains(requestToConnectionId) && !g.Contains(Context.ConnectionId)))
             {
                 Clients.Caller.opponentIsOccupied();
@@ -139,7 +142,7 @@ namespace SignalR.Hubs
             if (await isSuccess)
             {
                 var group = groupNames.Where(g=>g.Contains(requestToConnectionId)).FirstOrDefault();
-                Clients.Group(group).playersReadyToPlay(group);
+                Clients.Group(group).playersReadyToPlay(userDetail, ConnectedUsers.Where(u=>u.ConnectionId == Context.ConnectionId).FirstOrDefault().UserName);
                 Clients.Group(group, Context.ConnectionId).playYourTurn();
                 return await isSuccess;
             }
