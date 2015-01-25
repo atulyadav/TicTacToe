@@ -17,10 +17,16 @@
     <link href="~/Content/bootstrap-table.min.css" rel="stylesheet" />
     <script src="~/Scripts/bootstrap-table.min.js"></script>
     <script src="~/Scripts/humps.js"></script>
-    <script src="~/Scripts/jquery.signalR-2.1.2.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.0.min.js"></script>
     <script src="@Url.Content("~/signalr/hubs")"></script>
     <link href="@Url.Content("~/Content/css/TicTacToe.css")" rel="stylesheet" type="text/css" />
     <script src="@Url.Content("~/Scripts/TicTacToe/TicTacToeSignalR.js")"></script>
+    <style>
+        #canvasId
+        {
+            position:relative;
+        }
+    </style>
 </head>
 <body>
     <div>
@@ -32,13 +38,18 @@
                 <button type="button" class="btn btn-primary btn-lg btn-block">Block level button</button>
                 <button type="button" class="btn btn-default btn-lg btn-block">Block level button</button>
             </div>
-            <div class="col-md-5">.col-md-4</div>
+            <div class="col-md-5" style="text-align:center">
+                <div id="canvasContainer">
+
+                </div>
+            </div>
             <div class="col-md-5">
                 <div class="alert alert-success" id="events-result" data-es="Aquí se muestra el resultado del evento">
                     Here is the result of event.
                 </div>
                 @*data-cache="false"*@
-                <table class="table hover condensed striped" id="onlineUserList" >
+                @*class="table hover condensed striped"*@
+                <table  class="table hover condensed striped" id="onlineUserList" >
                     <thead>
                         <tr>
                             <th data-field="connectionId">Connection ID</th>

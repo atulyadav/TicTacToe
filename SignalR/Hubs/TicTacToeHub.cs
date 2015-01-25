@@ -31,13 +31,14 @@ namespace SignalR.Hubs
                 ConnectedUsers.Add(new UserDetail { ConnectionId = id, UserName = userName, Status = "off" });
 
                 // send to caller
-                Clients.Caller.onConnected(id, userName, ConnectedUsers, CurrentMessage);
+                Clients.Caller.onConnected(id, userName, ConnectedUsers.Where(u=>u.ConnectionId != id));
+                // Clients.All.onConnected(id, userName, ConnectedUsers);
 
                 // send to all except caller client
-                Clients.AllExcept(id).onNewUserConnected(id, userName, ConnectedUsers);
+               Clients.AllExcept(id).onNewUserConnected(id, userName, ConnectedUsers);
 
                 // upadte connected user list
-                Clients.All.onlineUserList(ConnectedUsers);
+               // Clients.All.onlineUserList(ConnectedUsers);
 
             }
 
@@ -129,28 +130,36 @@ namespace SignalR.Hubs
 
         public async Task<bool> RequestToConnectionId(string user)
         {
-            UserDetail userDetail = JsonConvert.DeserializeObject(user) as UserDetail;
-            string requestToConnectionId = userDetail.ConnectionId;
-            if(groupNames != null && groupNames.Any(g=>g.Contains(requestToConnectionId) && !g.Contains(Context.ConnectionId)))
+            try
             {
-                Clients.Caller.opponentIsOccupied();
+                UserDetail userDetail = JsonConvert.DeserializeObject<UserDetail>(user);
+                string requestToConnectionId = userDetail.ConnectionId;
+                if (groupNames != null && groupNames.Any(g => g.Contains(requestToConnectionId) && !g.Contains(Context.ConnectionId)))
+                {
+                    Clients.Caller.opponentIsOccupied();
+                    return false;
+                }
+
+                // Call and await in separate statements.
+                Task<bool> isSuccess = AddToGroup(requestToConnectionId);
+                if (await isSuccess)
+                {
+                    var group = groupNames.Where(g => g.Contains(requestToConnectionId)).FirstOrDefault();
+                    Clients.Group(group).playersReadyToPlay(userDetail, ConnectedUsers.Where(u => u.ConnectionId == Context.ConnectionId).FirstOrDefault().UserName, group);
+                    Clients.Group(group, Context.ConnectionId).playYourFirstTurn();
+                    return await isSuccess;
+                }
+                else
+                {
+                    Clients.Caller.opponentNotConnected();
+                    return await isSuccess;
+                }
+            }
+            catch(Exception ex)
+            {
                 return false;
             }
-
-            // Call and await in separate statements.
-            Task<bool> isSuccess = AddToGroup(requestToConnectionId);
-            if (await isSuccess)
-            {
-                var group = groupNames.Where(g=>g.Contains(requestToConnectionId)).FirstOrDefault();
-                Clients.Group(group).playersReadyToPlay(userDetail, ConnectedUsers.Where(u=>u.ConnectionId == Context.ConnectionId).FirstOrDefault().UserName);
-                Clients.Group(group, Context.ConnectionId).playYourTurn();
-                return await isSuccess;
-            }
-            else
-            {
-                Clients.Caller.opponentNotConnected();
-                return await isSuccess;
-            }
+           
         }
 
         public async Task<bool> AddToGroup(string requestToConnectionId)
@@ -206,11 +215,19 @@ namespace SignalR.Hubs
             return ConnectedUsers.Any(u => u.ConnectionId == id);
         }
 
-        public void PlayYourTurn(string groupName)
+        public void PlayYourTurn(int index, int activePlayer, string groupName)
         {
             if (groupNames.Any(g => g.Contains(groupName)))
             {
-                Clients.Group(groupName, Context.ConnectionId).playYourTurn();
+                Clients.Group(groupName, Context.ConnectionId).playYourTurn(index, activePlayer);
+            }
+        }
+
+        public void updateCellOfOpponent(int index, int activePlayer, string groupName)
+        {
+            if (groupNames.Any(g => g.Contains(groupName)))
+            {
+                Clients.Group(groupName, Context.ConnectionId).updateCellOfOpponent(index, activePlayer);
             }
         }
 
