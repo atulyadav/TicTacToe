@@ -70,26 +70,55 @@ $(document).ready(function () {
     });
 });
 
-function updateOnlineUserList(onlineUsers) {
-    var users = humps.camelizeKeys(onlineUsers);
-    var $result = $('#events-result');
+//function updateOnlineUserList(onlineUsers) {
+//    var users = humps.camelizeKeys(onlineUsers);
+//    var $result = $('#events-result');
    
-    $('#onlineUserList').bootstrapTable({
-        data: users
-    }).on('all.bs.table', function (e, name, args) {
-        console.log('Event:', name, ', data:', args);
-    }).on('click-row.bs.table', function (e, row, $element) {
-        $result.text('Event: click-row.bs.table, data: ' + JSON.stringify(row));
-        debugger
-        connectToOpponent(ticTacToeHub, row);
-    }).on('dbl-click-row.bs.table', function (e, row, $element) {
-        $result.text('Event: dbl-click-row.bs.table, data: ' + JSON.stringify(row));
-    }).on('load-success.bs.table', function (e, data) {
-        $result.text('Event: load-success.bs.table');
-    }).on('load-error.bs.table', function (e, status) {
-        $result.text('Event: load-error.bs.table, data: ' + status);
-    });
+//    //$('#onlineUserList').bootstrapTable({
+//    //    data: users
+//    //}).on('all.bs.table', function (e, name, args) {
+//    //    console.log('Event:', name, ', data:', args);
+//    //}).on('click-row.bs.table', function (e, row, $element) {
+//    //    $result.text('Event: click-row.bs.table, data: ' + JSON.stringify(row));
+//    //    debugger
+//    //    connectToOpponent(ticTacToeHub, row);
+//    //}).on('dbl-click-row.bs.table', function (e, row, $element) {
+//    //    $result.text('Event: dbl-click-row.bs.table, data: ' + JSON.stringify(row));
+//    //}).on('load-success.bs.table', function (e, data) {
+//    //    $result.text('Event: load-success.bs.table');
+//    //}).on('load-error.bs.table', function (e, status) {
+//    //    $result.text('Event: load-error.bs.table, data: ' + status);
+//    //});
+//}
 
+function updateOnlineUserList(onlineUsers) {
+ 
+    $("body").off("click", "tr.getrow");
+    var table = document.getElementById("onlineUserList").getElementsByTagName('tbody')[0];;
+    for (var i = table.rows.length - 1; i > 0; i--) {
+        table.deleteRow(i);
+    }
+    onlineUsers = getRows();
+    var $result = $('#events-result');
+    for (var i = 0; i < onlineUsers.length; i++) {
+        var row = table.insertRow(i);
+        row.className = "getrow";
+        var cell1 = row.insertCell(0); cell1.className = "getrow";
+        var cell2 = row.insertCell(1); cell2.className = "getrow";
+        var cell3 = row.insertCell(2); cell3.className = "getrow";
+        cell1.innerHTML = onlineUsers[i].ConnectionId;
+        cell2.innerHTML = onlineUsers[i].UserName;
+        cell3.innerHTML = onlineUsers[i].Status;
+    }
+
+    $("tr.getrow").on("click", function () {
+        //debugger
+        var tableData = $(this).children("td").map(function () {
+            return $(this).text();
+        }).get();
+       
+        console.log(tableData);
+    });  
 }
 
 function connectToOpponent(ticTacToeHub, row) {
@@ -98,9 +127,7 @@ function connectToOpponent(ticTacToeHub, row) {
     if (!connectedToOpponent && row.connectionId != "") {
         connectedToOpponent = true;
         var tr = JSON.stringify(row);
-        // var tr2 = eval("" + row + "");
-        //var tr3 = JSON.parse(row);
-        // var tr4 = JSON.parse(tr);
+      
         ticTacToeHub.server.requestToConnectionId(tr).done(function (result) {
             console.log("ticTacToeHub.server.requestToConnectionId - successful " + result);
         }).fail(function (error) {
@@ -128,7 +155,7 @@ function getRows() {
 
     for (var i = 0; i < 5; i++) {
         rows.push(
-            { connectionId: "id " + id, userName: "diker" + id, status: "fails" });
+            { ConnectionId: "id " + id, UserName: "diker" + id, Status: "fails" });
         id++;
     }
     return rows;
@@ -138,7 +165,7 @@ function registerClientMethods(ticTacToeHub) {
 
     // Calls when user successfully logged in
     ticTacToeHub.client.onConnected = function (id, userName, connectedUsers) {
-        debugger
+        //debugger
         // setScreen(true);
         var $connectionResult = $('#connection-result');
         $connectionResult.text("onConnected : " + id + " " + userName);
@@ -147,7 +174,7 @@ function registerClientMethods(ticTacToeHub) {
 
     // On New User Connected
     ticTacToeHub.client.onNewUserConnected = function (id, userName, connectedUsers) {
-        debugger
+        //debugger
         var $connectionResult = $('#connection-result');
         $connectionResult.text("onNewUserConnected : " + id + " " + userName);
         updateOnlineUserList(connectedUsers);

@@ -203,3 +203,4 @@ C:\Users\ayadav\documents\visual studio 2012\Projects\SignalR\SignalR\bin\zh-Han
 C:\Users\ayadav\documents\visual studio 2012\Projects\SignalR\SignalR\bin\zh-Hant\System.Spatial.resources.dll
 C:\Users\ayadav\documents\visual studio 2012\Projects\SignalR\SignalR\obj\Debug\SignalR.dll
 C:\Users\ayadav\documents\visual studio 2012\Projects\SignalR\SignalR\obj\Debug\SignalR.pdb
+C:\Users\ayadav\Documents\Visual Studio 2012\Projects\SignalR\SignalR\obj\Debug\SignalR.csprojResolveAssemblyReference.cache
