@@ -379,16 +379,16 @@ window.onload = function main() {
 
     //SIGNALR
     // Declare a proxy to reference the hub. 
-    var chatHub = $.connection.chatHub;
+    //var chatHub = $.connection.chatHub;
 
-    registerClientMethods(chatHub);
+   // registerClientMethods(chatHub);
 
     // Start Hub
-    $.connection.hub.start().done(function () {
+    //$.connection.hub.start().done(function () {
 
-       // registerEvents(chatHub)
+    //   // registerEvents(chatHub)
 
-    });
+    //});
 
     //activePlayer = playerType.NONE;
     //printBoard(board);

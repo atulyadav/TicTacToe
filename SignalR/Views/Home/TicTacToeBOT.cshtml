@@ -1,0 +1,28 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>TicTacToe</title>
+
+    <script src="@Url.Content("~/Scripts/jquery-2.1.3.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")"></script>
+    <link href="@Url.Content("~/Content/bootstrap/css/bootstrap.min.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/css/TicTacToe.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/TicTacToe/TicTacToe.js")"></script>
+</head>
+<body>
+     <div class="row">
+            <div class="col-md-2">
+               @* primary*@
+                <a href="@Url.Action("TicTacToeBOT", "Home")" class="btn btn-primary btn-lg active btn-block" role="button">BOT</a>
+                <a href="@Url.Action("TicTacToeOnline", "Home")" class="btn btn-default btn-lg active btn-block" role="button">Friend</a>
+            </div>
+        </div>
+    <div></div>
+</body>
+</html>

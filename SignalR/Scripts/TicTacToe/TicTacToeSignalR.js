@@ -5,7 +5,6 @@ var groupName = "";
 var canvas;
 $(document).ready(function () {
     console.log("ready!");
-
     canvas = document.createElement("canvas");
     canvas.id = "canvasId";
     canvas.width = canvas.height = 300 + 15;
@@ -18,6 +17,7 @@ $(document).ready(function () {
     //Declare a proxy to reference the hub. 
     ticTacToeHub = $.connection.ticTacToeHub;
     $.connection.hub.logging = true;
+    updateOnlineUserList(null);
 
     //$.connection.ticTacToeHub.stateChanged(function (change) {
     //    var stateConversion = { 0: 'connecting', 1: 'connected', 2: 'reconnecting', 4: 'disconnected' };
@@ -45,16 +45,17 @@ $(document).ready(function () {
     //}
     // $.connection.ticTacToeHub.stateChanged(connectionStateChanged);
 
-    getUserAndConnect();
+    //getUserAndConnect();
     //Start Hub
 
-    $.connection.hub.start().done(function () {
-        console.log("connection.hub.start() : connected");
-        // ticTacToeHub.server.setupStatus();
-    }).fail(function () {
-        alert("connection.hub.start() failed");
-    });
-    registerClientMethods(ticTacToeHub);
+    //$.connection.hub.start().done(function () {
+    //    console.log("connection.hub.start() : connected");
+    //    getUserAndConnect();
+    //    // ticTacToeHub.server.setupStatus();
+    //}).fail(function () {
+    //    alert("connection.hub.start() failed");
+    //});
+    //registerClientMethods(ticTacToeHub);
     //getUserAndConnect();
 
     $("#btn-save-user").click(function (e) {
@@ -92,9 +93,9 @@ $(document).ready(function () {
 //}
 
 function updateOnlineUserList(onlineUsers) {
- 
-    $("body").off("click", "tr.getrow");
-    var table = document.getElementById("onlineUserList").getElementsByTagName('tbody')[0];;
+    debugger
+    //$("tr.getrow").unbind("click");
+    var table = document.getElementById("onlineUserList").getElementsByTagName('tbody')[0];
     for (var i = table.rows.length - 1; i > 0; i--) {
         table.deleteRow(i);
     }
@@ -111,14 +112,18 @@ function updateOnlineUserList(onlineUsers) {
         cell3.innerHTML = onlineUsers[i].Status;
     }
 
-    $("tr.getrow").on("click", function () {
-        //debugger
-        var tableData = $(this).children("td").map(function () {
-            return $(this).text();
-        }).get();
-       
-        console.log(tableData);
-    });  
+    $("tr.getrow").bind("click", attatchClickToRow(this));
+    //$("tr.getrow").unbind("click");
+}
+
+function attatchClickToRow(r) {
+    debugger
+    var tableRowData = $(r).children("td").map(function () {
+        return $(r).text();
+    }).get();
+    debugger
+    console.log(tableRowData[0]);
+    connectToOpponent(ticTacToeHub, tableRowData[0]);
 }
 
 function connectToOpponent(ticTacToeHub, row) {
@@ -246,6 +251,11 @@ function registerClientMethods(ticTacToeHub) {
         }
         console.log("ticTacToeHub.client.updateCellOfOpponent - successful");
     }
+
+    ticTacToeHub.client.onlineUserList = function (onlineUserList) {
+        updateOnlineUserList(onlineUserList);
+        console.log("ticTacToeHub.client.onlineUserList - successful");
+    }
 }
 
 function registerEvents(ticTacToeHub) {
@@ -279,6 +289,11 @@ function cellOnClick(evt) {
         console.log("invalid index = " + index + " or invalid player = " + activePlayer);
     }
 
+}
+
+function ShowMoveMessage() {
+}
+function fadeBoard() {
 }
 
 var SQUREWIDTH = 100;

@@ -384,8 +384,8 @@
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Web.config" />
-    <Content Include="Views\Home\TicTacToe.cshtml" />
-    <Content Include="Views\Home\TicTacToe1.cshtml" />
+    <Content Include="Views\Home\TicTacToeBOT.cshtml" />
+    <Content Include="Views\Home\TicTacToeOnline.cshtml" />
     <Content Include="Views\Shared\_html5shiv.cshtml" />
   </ItemGroup>
   <ItemGroup>
