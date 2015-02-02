@@ -15,7 +15,7 @@ namespace SignalR.Controllers
             return View();
         }
 
-        public ActionResult TicTacToe()
+        public ActionResult TicTacToeBOT()
         {
             ViewBag.Message = "Modify this template to jump-start your ASP.NET MVC application.";
 
@@ -36,7 +36,7 @@ namespace SignalR.Controllers
             return View();
         }
 
-        public ActionResult TicTacToe1()
+        public ActionResult TicTacToeOnline()
         {
             ViewBag.Message = "Modify this template to jump-start your ASP.NET MVC application.";
 

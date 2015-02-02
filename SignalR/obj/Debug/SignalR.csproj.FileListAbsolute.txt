@@ -100,7 +100,6 @@ F:\VSWorkspace\TicTacToe\SignalR\bin\zh-Hans\System.Spatial.resources.dll
 F:\VSWorkspace\TicTacToe\SignalR\bin\zh-Hant\System.Spatial.resources.dll
 F:\VSWorkspace\TicTacToe\SignalR\obj\Debug\SignalR.dll
 F:\VSWorkspace\TicTacToe\SignalR\obj\Debug\SignalR.pdb
-F:\VSWorkspace\TicTacToe\SignalR\obj\Debug\SignalR.csprojResolveAssemblyReference.cache
 C:\Users\ayadav\documents\visual studio 2012\Projects\SignalR\SignalR\bin\SignalR.dll
 C:\Users\ayadav\documents\visual studio 2012\Projects\SignalR\SignalR\bin\SignalR.pdb
 C:\Users\ayadav\documents\visual studio 2012\Projects\SignalR\SignalR\bin\Antlr3.Runtime.dll
