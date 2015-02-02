@@ -31,14 +31,14 @@ namespace SignalR.Hubs
                 ConnectedUsers.Add(new UserDetail { ConnectionId = id, UserName = userName, Status = "off" });
 
                 // send to caller
-                Clients.Caller.onConnected(id, userName, ConnectedUsers.Where(u=>u.ConnectionId != id));
+                Clients.Caller.onConnected(id, userName, ConnectedUsers.Where(u => u.ConnectionId != id));
                 // Clients.All.onConnected(id, userName, ConnectedUsers);
 
                 // send to all except caller client
-               Clients.AllExcept(id).onNewUserConnected(id, userName, ConnectedUsers);
+                Clients.AllExcept(id).onNewUserConnected(id, userName, ConnectedUsers);
 
                 // upadte connected user list
-               // Clients.All.onlineUserList(ConnectedUsers);
+                // Clients.All.onlineUserList(ConnectedUsers);
 
             }
 
@@ -71,10 +71,10 @@ namespace SignalR.Hubs
             }
 
         }
-        
+
         public override System.Threading.Tasks.Task OnConnected()
         {
-            
+
             //    var item = ConnectedUsers.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
             //    if (item != null)
             //    {
@@ -101,6 +101,8 @@ namespace SignalR.Hubs
                 var groupToBeRemoved = groupNames.Where(g => g.Contains(Context.ConnectionId)).FirstOrDefault();
                 groupNames.Remove(groupToBeRemoved);
             }
+
+            this.OnlineUserList();
             return base.OnDisconnected(stopCalled);
         }
 
@@ -120,7 +122,7 @@ namespace SignalR.Hubs
 
         public void OnlineUserList()
         {
-           Clients.All.onlineUserList(ConnectedUsers);
+            Clients.All.updateOnlineUsers(ConnectedUsers);
         }
 
         public void SetupStatus()
@@ -136,7 +138,7 @@ namespace SignalR.Hubs
                 string requestToConnectionId = userDetail.ConnectionId;
                 if (groupNames != null && groupNames.Any(g => g.Contains(requestToConnectionId) && !g.Contains(Context.ConnectionId)))
                 {
-                    Clients.Caller.opponentIsOccupied();
+                    Clients.Caller.opponentIsOccupied(userDetail);
                     return false;
                 }
 
@@ -145,7 +147,7 @@ namespace SignalR.Hubs
                 if (await isSuccess)
                 {
                     var group = groupNames.Where(g => g.Contains(requestToConnectionId)).FirstOrDefault();
-                    Clients.Group(group).playersReadyToPlay(userDetail, ConnectedUsers.Where(u => u.ConnectionId == Context.ConnectionId).FirstOrDefault().UserName, group);
+                    Clients.Group(group).playersReadyToPlay(userDetail, ConnectedUsers.Where(u => u.ConnectionId == Context.ConnectionId).FirstOrDefault(), group);
                     Clients.Group(group, Context.ConnectionId).playYourFirstTurn();
                     return await isSuccess;
                 }
@@ -155,22 +157,22 @@ namespace SignalR.Hubs
                     return await isSuccess;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return false;
             }
-           
+
         }
 
         public async Task<bool> AddToGroup(string requestToConnectionId)
         {
             string id = Context.ConnectionId;
             string groupName = string.Format(id + "/" + requestToConnectionId);
-            string rGroupName = string.Format(requestToConnectionId + "/" + id );
+            string rGroupName = string.Format(requestToConnectionId + "/" + id);
             bool isBothUserConnected;
             if (groupNames.Any(g => g.Contains(id) || g.Contains(requestToConnectionId)))
             {
-                if(groupNames.Any(g => g.Contains(groupName) || g.Contains(rGroupName)))
+                if (groupNames.Any(g => g.Contains(groupName) || g.Contains(rGroupName)))
                 {
                     var duplicateName = groupNames.Where(g => g.Contains(groupName) || g.Contains(rGroupName));
                     if (duplicateName.Count() > 1)
@@ -180,7 +182,7 @@ namespace SignalR.Hubs
                     }
                 }
             }
-            
+
             if (this.CheckClientExist(requestToConnectionId))
             {
                 try
@@ -190,14 +192,14 @@ namespace SignalR.Hubs
                     isBothUserConnected = true;
                     if (groupNames != null && groupName.Count() > 0)
                     {
-                        if(!groupNames.Any(g => g.Equals(groupName)))
+                        if (!groupNames.Any(g => g.Equals(groupName)))
                         {
                             groupNames.Add(groupName);
                         }
                     }
-                    
+
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     isBothUserConnected = false;
                 }
@@ -211,7 +213,7 @@ namespace SignalR.Hubs
         }
 
         private bool CheckClientExist(string id)
-        {   
+        {
             return ConnectedUsers.Any(u => u.ConnectionId == id);
         }
 
@@ -223,13 +225,24 @@ namespace SignalR.Hubs
             }
         }
 
-        public void updateCellOfOpponent(int index, int activePlayer, string groupName)
+        public void UpdateCellOfOpponent(int index, int activePlayer, string groupName)
         {
             if (groupNames.Any(g => g.Contains(groupName)))
             {
                 Clients.Group(groupName, Context.ConnectionId).updateCellOfOpponent(index, activePlayer);
             }
         }
+        public void RemoveGroup(string connectionId, string UserName, string groupName)
+        {
+            if (groupNames.Any(g => g.Contains(groupName)))
+            {
+                var groupToBeRemoved = groupNames.Where(g => g.Contains(groupName)).FirstOrDefault();
+                groupNames.Remove(groupToBeRemoved);
+            }
+
+
+        }
+
 
     }
 }

@@ -3,6 +3,13 @@ var connectedToOpponent = false;
 var isYourTurn = false;
 var groupName = "";
 var canvas;
+var status = {
+    connectedToOpponent: false,
+    requesterUserId: "",
+    requesterName: "",
+    groupName: ""
+};
+
 $(document).ready(function () {
     console.log("ready!");
 
@@ -68,6 +75,40 @@ $(document).ready(function () {
         else {
         }
     });
+
+    $("#btn-accept-user").click(function (e) {
+        e.preventDefault();
+        $("#userNameDialog").modal('hide');
+    });
+
+
+    $("#opponentBusyClose").click(function (e) {
+        e.preventDefault();
+        $("#opponentBusyDialog").modal('hide');
+        clearStatus();
+    });
+
+    $("#btn-dismiss-user").click(function (e) {
+        e.preventDefault();
+        var name = $("#userName").val();
+        if ($.trim(name) != '') {
+            currentUserName = name;
+            $("#userNameDialog").modal('hide');
+            registerEvents(ticTacToeHub);
+        }
+        else {
+        }
+    });
+   
+    $('#confirmationModal').on('show.bs.modal', function (e) {
+        var modal = $(this)
+        modal.find('.modal-title').text('You are Requested by ' + status.requesterName);
+    });
+
+    $('#opponentBusyDialog').on('show.bs.modal', function (e) {
+        var modal = $(this)
+        modal.find('.modal-title').text('Your Requested Opponent is Occupied : ' + status.requesterName);
+    });
 });
 
 //function updateOnlineUserList(onlineUsers) {
@@ -118,21 +159,22 @@ function updateOnlineUserList(onlineUsers) {
         }).get();
        
         console.log(tableData);
+        connectToOpponent(ticTacToeHub, tableData);
     });  
 }
 
 function connectToOpponent(ticTacToeHub, row) {
     debugger
     console.log("row = " + row.connectionId);
-    if (!connectedToOpponent && row.connectionId != "") {
-        connectedToOpponent = true;
+    if (!status.connectedToOpponent && row.connectionId != "") {
+        status.connectedToOpponent = true;
         var tr = JSON.stringify(row);
       
         ticTacToeHub.server.requestToConnectionId(tr).done(function (result) {
             console.log("ticTacToeHub.server.requestToConnectionId - successful " + result);
         }).fail(function (error) {
             console.log("ticTacToeHub.server.requestToConnectionId - failed " + error);
-            connectedToOpponent = false;
+            status.connectedToOpponent = false;
         });
     }
     else {
@@ -140,6 +182,13 @@ function connectToOpponent(ticTacToeHub, row) {
     }
 }
 
+function clearStatus() {
+    status.requesterUserId = "";
+    status.requesterName = "";
+    status.connectedToOpponent = false;
+    status.groupName = "";
+    window.activePlayer = playerType.NONE;
+}
 function setScreen(isLogin) {
 
     if (!isLogin) {
@@ -208,13 +257,18 @@ function registerClientMethods(ticTacToeHub) {
 
     //}
 
-    ticTacToeHub.client.playersReadyToPlay = function (user, opponentUserName, groupName) {
+    ticTacToeHub.client.playersReadyToPlay = function (user, opponentUser, groupName) {
         debugger
         // var JSONObject = jQuery.parseJSON(user);
         var JSONObject = user;
         window.groupName = groupName;
+        status.requesterUserId = opponentUser.ConnectionId;
+        status.requesterName = opponentUser.UserName;
+        status.groupName = groupName;
+        
         if (JSONObject.ConnectionId == ticTacToeHub.connection.id) {
-            console.log("playersReadyToPlay :: you are requested to play with... " + opponentUserName);
+            console.log("playersReadyToPlay :: you are requested to play with... " + opponentUser.UserName);
+            getUserConfirmation();
             window.activePlayer = playerType.BOT;
         } else {
             console.log("playersReadyToPlay :: your opponent is connected...");
@@ -226,7 +280,9 @@ function registerClientMethods(ticTacToeHub) {
     ticTacToeHub.client.playYourFirstTurn = function () {
         canvas.addEventListener("click", cellOnClick, false);
         console.log("ticTacToeHub.client.playYourFirstTurn - successful");
-        alert("its your turn...");
+        var connectionResult = $('#player-status');
+        $connectionResult.text("its your turn...");
+        //alert("its your turn...");
         // connectedToOpponent = true;
     }
 
@@ -234,7 +290,9 @@ function registerClientMethods(ticTacToeHub) {
         updateCell(index, activePlayer);
         canvas.addEventListener("click", cellOnClick, false);
         console.log("ticTacToeHub.client.playYourTurn - successful");
-        alert("Play your turn....");
+        var connectionResult = $('#player-status');
+        $connectionResult.text("Play your turn....");
+        //alert("Play your turn....");
         // connectedToOpponent = true;
     }
 
@@ -243,8 +301,40 @@ function registerClientMethods(ticTacToeHub) {
         var winner = isGameOver();
         if (winner[0]) {
             showWinnerMessage(winner);
+            var connectionResult = $('#player-status');
+            $connectionResult.text("Game Over; Restart the Game");
+            canvas.removeEventListener("click", cellOnClick, false);
+            $("body").off("click", "tr.getrow");
+            ticTacToeHub.server.removeGroup(status.requesterUserId, status.requesterName, status.groupName).done(function () {
+                console.log("ticTacToeHub.server.removeGroup - successful ");
+                // connectedToOpponent = true;
+            }).fail(function () {
+                console.log("ticTacToeHub.server.removeGroup - failed");
+            });
+            ticTacToeHub.server.OnlineUserList().done(function () {
+                console.log("ticTacToeHub.server.updateOnlineUsers - successful " + ticTacToeHub.hubName);
+                // connectedToOpponent = true;
+            }).fail(function () {
+                console.log("ticTacToeHub.server.updateOnlineUsers - failed");
+            });
+            clearStatus();
         }
         console.log("ticTacToeHub.client.updateCellOfOpponent - successful");
+    }
+
+    ticTacToeHub.client.opponentIsOccupied = function (userDetail) {
+        status.requesterName = userDetail.UserName;
+        showOpponentBusy();
+        clearStatus();
+        console.log("ticTacToeHub.client.opponentIsOccupied - successful");
+    }
+
+    ticTacToeHub.client.updateOnlineUsers = function (connectedUsers) {
+        //debugger
+        // setScreen(true);
+        //var $connectionResult = $('#connection-result');
+        //$connectionResult.text("onConnected : " + id + " " + userName);
+        updateOnlineUserList(connectedUsers);
     }
 }
 
@@ -263,6 +353,14 @@ function registerEvents(ticTacToeHub) {
 
 function getUserAndConnect() {
     $("#userNameDialog").modal();
+}
+
+function getUserConfirmation() {
+    $("#confirmationModal").modal();
+}
+
+function showOpponentBusy() {
+    $("#opponentBusyDialog").modal();
 }
 
 function cellOnClick(evt) {
@@ -400,14 +498,32 @@ function makeMove(index, activePlayer) {
         if (winner[0]) {
             updateCellOfOpponent(index, window.activePlayer);
             showWinnerMessage(winner);
+            var connectionResult = $('#player-status');
+            $connectionResult.text("Game Over; Restart the Game");
+            canvas.removeEventListener("click", cellOnClick, false);
+            $("body").off("click", "tr.getrow");
+            ticTacToeHub.server.removeGroup(status.requesterUserId, status.requesterName, status.groupName).done(function () {
+                console.log("ticTacToeHub.server.removeGroup - successful ");
+                // connectedToOpponent = true;
+            }).fail(function () {
+                console.log("ticTacToeHub.server.removeGroup - failed");
+            });
+            clearStatus();
+            ticTacToeHub.server.OnlineUserList().done(function () {
+                console.log("ticTacToeHub.server.updateOnlineUsers - successful " + ticTacToeHub.hubName);
+                // connectedToOpponent = true;
+            }).fail(function () {
+                console.log("ticTacToeHub.server.updateOnlineUsers - failed");
+            });
             return;
         }
         else {
 
             makeMoveByOpponentPlayer(index, activePlayer, groupName);
         }
-
-        alert("waiting for apponent move...");
+        var connectionResult = $('#player-status');
+        $connectionResult.text("waiting for apponent move...");
+        //alert("waiting for apponent move...");
     }
 }
 
