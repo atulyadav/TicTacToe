@@ -23,7 +23,7 @@ namespace SignalR.Hubs
         #region Methods
         public void Connect(string userName)
         {
-            var id = Context.ConnectionId;
+              var id = Context.ConnectionId;
 
 
             if (ConnectedUsers.Count(x => x.ConnectionId == id) == 0)
@@ -31,11 +31,11 @@ namespace SignalR.Hubs
                 ConnectedUsers.Add(new UserDetail { ConnectionId = id, UserName = userName, Status = "off" });
 
                 // send to caller
-                Clients.Caller.onConnected(id, userName, ConnectedUsers.Where(u => u.ConnectionId != id));
+                // Clients.Caller.onConnected(id, userName, ConnectedUsers.Where(u => u.ConnectionId != id));
                 // Clients.All.onConnected(id, userName, ConnectedUsers);
 
                 // send to all except caller client
-                Clients.AllExcept(id).onNewUserConnected(id, userName, ConnectedUsers);
+                Clients.All.onNewUserConnected(id, userName, ConnectedUsers);
 
                 // upadte connected user list
                 // Clients.All.onlineUserList(ConnectedUsers);
@@ -88,6 +88,7 @@ namespace SignalR.Hubs
             return base.OnConnected();
         }
 
+        //System.Threading.Tasks.Task
         public override System.Threading.Tasks.Task OnDisconnected(bool stopCalled)
         {
             if (ConnectedUsers.Any(c => c.ConnectionId == Context.ConnectionId))
@@ -127,7 +128,7 @@ namespace SignalR.Hubs
 
         public void SetupStatus()
         {
-            Clients.Caller.setupComplete();
+            Clients.Caller.setupComplete(ConnectedUsers);
         }
 
         public async Task<bool> RequestToConnectionId(string user)
@@ -136,6 +137,7 @@ namespace SignalR.Hubs
             {
                 UserDetail userDetail = JsonConvert.DeserializeObject<UserDetail>(user);
                 string requestToConnectionId = userDetail.ConnectionId;
+                this.OnlineUserList();
                 if (groupNames != null && groupNames.Any(g => g.Contains(requestToConnectionId) && !g.Contains(Context.ConnectionId)))
                 {
                     Clients.Caller.opponentIsOccupied(userDetail);
@@ -147,7 +149,7 @@ namespace SignalR.Hubs
                 if (await isSuccess)
                 {
                     var group = groupNames.Where(g => g.Contains(requestToConnectionId)).FirstOrDefault();
-                    Clients.Group(group).playersReadyToPlay(userDetail, ConnectedUsers.Where(u => u.ConnectionId == Context.ConnectionId).FirstOrDefault(), group);
+                    Clients.Group(group).playersReadyToPlay(userDetail, ConnectedUsers.Where(u => u.ConnectionId == Context.ConnectionId).FirstOrDefault(), group, false);
                     Clients.Group(group, Context.ConnectionId).playYourFirstTurn();
                     return await isSuccess;
                 }
@@ -156,12 +158,12 @@ namespace SignalR.Hubs
                     Clients.Caller.opponentNotConnected();
                     return await isSuccess;
                 }
+                
             }
             catch (Exception ex)
             {
                 return false;
             }
-
         }
 
         public async Task<bool> AddToGroup(string requestToConnectionId)
@@ -209,6 +211,8 @@ namespace SignalR.Hubs
                 // client is not connected
                 isBothUserConnected = false;
             }
+
+            this.OnlineUserList();
             return isBothUserConnected;
         }
 
@@ -223,6 +227,8 @@ namespace SignalR.Hubs
             {
                 Clients.Group(groupName, Context.ConnectionId).playYourTurn(index, activePlayer);
             }
+
+            this.OnlineUserList();
         }
 
         public void UpdateCellOfOpponent(int index, int activePlayer, string groupName)
@@ -231,7 +237,10 @@ namespace SignalR.Hubs
             {
                 Clients.Group(groupName, Context.ConnectionId).updateCellOfOpponent(index, activePlayer);
             }
+
+            this.OnlineUserList();
         }
+
         public void RemoveGroup(string connectionId, string UserName, string groupName)
         {
             if (groupNames.Any(g => g.Contains(groupName)))
@@ -240,9 +249,28 @@ namespace SignalR.Hubs
                 groupNames.Remove(groupToBeRemoved);
             }
 
-
+            this.OnlineUserList();
         }
 
-
+        public void RestartGame(string userConnectionId, string opponentConnectionId, string groupName, bool isRestartGame)
+        {
+            if (this.CheckClientExist(userConnectionId) && this.CheckClientExist(opponentConnectionId))
+            {
+                if (!groupNames.Any(g => g.Equals(groupName)))
+                {
+                    UserDetail userDetail = ConnectedUsers.Where(u => u.ConnectionId == userConnectionId).First();
+                    Clients.Group(groupName).playersReadyToPlay(userDetail, ConnectedUsers.Where(u => u.ConnectionId == Context.ConnectionId).FirstOrDefault(), groupName, isRestartGame);
+                    Clients.Group(groupName, Context.ConnectionId).playYourFirstTurn();
+                }
+                else
+                {
+                    Clients.Caller.opponentNotConnected();
+                }
+            }
+            else
+            {
+                Clients.Caller.opponentNotConnected();
+            }
+        }
     }
 }
