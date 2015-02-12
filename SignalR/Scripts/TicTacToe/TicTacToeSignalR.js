@@ -271,6 +271,8 @@ function registerClientMethods(ticTacToeHub) {
 
     ticTacToeHub.client.playersReadyToPlay = function (user, opponentUser, groupName, isRestartGame) {
         debugger
+        clearStatus();
+        window.groupName = "";
         // var JSONObject = jQuery.parseJSON(user);
         $("#restartGame").hide();
         var JSONObject = user;
@@ -531,7 +533,7 @@ function updateCell(index, activePlayer) {
 }
 
 function makeMove(index, activePlayer) {
-    //debugger   
+    debugger   
     if (activePlayer === window.activePlayer) {
         updateCell(index, activePlayer);
         var winner = isGameOver();
