@@ -256,7 +256,7 @@ namespace SignalR.Hubs
         {
             if (this.CheckClientExist(userConnectionId) && this.CheckClientExist(opponentConnectionId))
             {
-                if (!groupNames.Any(g => g.Equals(groupName)))
+                if (groupNames.Any(g => g.Equals(groupName)))
                 {
                     UserDetail userDetail = ConnectedUsers.Where(u => u.ConnectionId == userConnectionId).First();
                     Clients.Group(groupName).playersReadyToPlay(userDetail, ConnectedUsers.Where(u => u.ConnectionId == Context.ConnectionId).FirstOrDefault(), groupName, isRestartGame);
@@ -270,6 +270,14 @@ namespace SignalR.Hubs
             else
             {
                 Clients.Caller.opponentNotConnected();
+            }
+        }
+
+        public void CheckAlive(string connectionId, string groupName)
+        {
+            if (groupNames.Any(g => g.Contains(groupName)))
+            {
+                Clients.Group(groupName).checkAlive();
             }
         }
     }

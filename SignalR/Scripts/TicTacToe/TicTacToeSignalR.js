@@ -89,7 +89,7 @@ $(document).ready(function () {
     });
    
     $('#confirmationModal').on('show.bs.modal', function (e) {
-        debugger
+        //debugger
         var modal = $(this)
         modal.find('.modal-title').text('You are Requested by ' + _status.requesterName);
     });
@@ -101,6 +101,10 @@ $(document).ready(function () {
 
     $("#restartGame").click(function () {
         restartGame();
+    });
+
+    $("#checkAlive").click(function () {
+        checkAlive();
     });
 });
 
@@ -114,7 +118,7 @@ $(document).ready(function () {
 //    //    console.log('Event:', name, ', data:', args);
 //    //}).on('click-row.bs.table', function (e, row, $element) {
 //    //    $result.text('Event: click-row.bs.table, data: ' + JSON.stringify(row));
-//    //    debugger
+//    //    //debugger
 //    //    connectToOpponent(ticTacToeHub, row);
 //    //}).on('dbl-click-row.bs.table', function (e, row, $element) {
 //    //    $result.text('Event: dbl-click-row.bs.table, data: ' + JSON.stringify(row));
@@ -139,11 +143,16 @@ function createTicTacToeBoard() {
 function updateOnlineUserList(onlineUsers) {
  
     $("body").off("click", "tr.getrow");
-    var table = document.getElementById("onlineUserList").getElementsByTagName('tbody')[0];;
-    for (var i = table.rows.length - 1; i > 0; i--) {
-        table.deleteRow(i);
-    }
-    debugger
+    //debugger
+    var table = document.getElementById("onlineUserList").getElementsByTagName('tbody')[0];
+    //for (var i = table.rows.length; i > 0; i--) {
+    //    if (i === table.rows.length) {
+    //        continue;
+    //    }
+    //    table.deleteRow(i);
+    //}
+    $('#onlineUserList tbody').html('');
+    
     //onlineUsers = getRows();
     var j = 0;
     var $result = $('#events-result');
@@ -162,7 +171,7 @@ function updateOnlineUserList(onlineUsers) {
     }
 
     $("tr.getrow").on("click", function () {
-        //debugger
+        ////debugger
         var tableData = $(this).children("td").map(function () {
             return $(this).text();
         }).get();
@@ -173,7 +182,7 @@ function updateOnlineUserList(onlineUsers) {
 }
 
 function connectToOpponent(ticTacToeHub, row1) {
-    debugger
+    //debugger
     var row = { "ConnectionId": row1[0], "UserName": row1[1], "Status": row1[2] };
     console.log("row = " + row.connectionId);
     if (!_status.connectedToOpponent && row.connectionId != "") {
@@ -225,7 +234,7 @@ function registerClientMethods(ticTacToeHub) {
 
     // Calls when user successfully logged in
     ticTacToeHub.client.onConnected = function (id, userName, connectedUsers) {
-        //debugger
+        ////debugger
         // setScreen(true);
         var $connectionResult = $('#connection-result');
         $connectionResult.text(currentUserName + " Connected");
@@ -234,7 +243,7 @@ function registerClientMethods(ticTacToeHub) {
 
     // On New User Connected
     ticTacToeHub.client.onNewUserConnected = function (id, userName, connectedUsers) {
-        //debugger
+        ////debugger
         var $connectionResult = $('#connection-result');
         $connectionResult.text("UserName : " + currentUserName + " Connected");
         updateOnlineUserList(connectedUsers);
@@ -270,7 +279,7 @@ function registerClientMethods(ticTacToeHub) {
     //}
 
     ticTacToeHub.client.playersReadyToPlay = function (user, opponentUser, groupName, isRestartGame) {
-        debugger
+        //debugger
         clearStatus();
         window.groupName = "";
         // var JSONObject = jQuery.parseJSON(user);
@@ -291,6 +300,7 @@ function registerClientMethods(ticTacToeHub) {
             }
             if (isRestartGame) {
                 createBoard();
+                alert("Game Restarted");
             }
             window.activePlayer = playerType.BOT;
         } else {
@@ -312,6 +322,7 @@ function registerClientMethods(ticTacToeHub) {
     }
 
     ticTacToeHub.client.playYourTurn = function (index, activePlayer) {
+        //debugger
         updateCell(index, activePlayer);
         canvas.addEventListener("click", cellOnClick, false);
         console.log("ticTacToeHub.client.playYourTurn - successful");
@@ -328,18 +339,20 @@ function registerClientMethods(ticTacToeHub) {
             showWinnerMessage(winner);
             var $connectionResult = $('#player-status');
             $connectionResult.text("Game Over; Restart the Game");
-            if (_status.requesterUserId !== ticTacToeHub.connection.id) {
-                //$("#restartGame").show();
+
+            if (_status.requesterUserId === ticTacToeHub.connection.id) {
+                //debugger
+                $("#restartGame").show();
             }
-            
+
             canvas.removeEventListener("click", cellOnClick, false);
             $("body").off("click", "tr.getrow");
-            ticTacToeHub.server.removeGroup(_status.requesterUserId, _status.requesterName, _status.groupName).done(function () {
-                console.log("ticTacToeHub.server.removeGroup - successful ");
-                // connectedToOpponent = true;
-            }).fail(function () {
-                console.log("ticTacToeHub.server.removeGroup - failed");
-            });
+            ////ticTacToeHub.server.removeGroup(_status.requesterUserId, _status.requesterName, _status.groupName).done(function () {
+            ////    console.log("ticTacToeHub.server.removeGroup - successful ");
+            ////    // connectedToOpponent = true;
+            ////}).fail(function () {
+            ////    console.log("ticTacToeHub.server.removeGroup - failed");
+            ////});
             ticTacToeHub.server.OnlineUserList().done(function () {
                 console.log("ticTacToeHub.server.updateOnlineUsers - successful " + ticTacToeHub.hubName);
                 // connectedToOpponent = true;
@@ -359,11 +372,16 @@ function registerClientMethods(ticTacToeHub) {
     }
 
     ticTacToeHub.client.updateOnlineUsers = function (connectedUsers) {
-        //debugger
+        ////debugger
         // setScreen(true);
         //var $connectionResult = $('#connection-result');
         //$connectionResult.text("onConnected : " + id + " " + userName);
         updateOnlineUserList(connectedUsers);
+    }
+
+    ticTacToeHub.client.checkAlive = function () {
+        //debugger
+        alert("Alive");
     }
 }
 
@@ -409,7 +427,7 @@ function cellOnClick(evt) {
 }
 
 function restartGame() {
-    debugger
+    //debugger
     createTicTacToeBoard();
     isRestartGame = true;
     ticTacToeHub.server.restartGame(_status.opponentUserId, ticTacToeHub.connection.id, groupName, isRestartGame).done(function () {
@@ -493,7 +511,7 @@ function getMousePos(canvas, evt) {
 
 
 function renderBoard(board) {
-    // debugger
+    // //debugger
     var board = board;
     var k = 0;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -533,29 +551,31 @@ function updateCell(index, activePlayer) {
 }
 
 function makeMove(index, activePlayer) {
-    debugger   
+    //debugger   
     if (activePlayer === window.activePlayer) {
         updateCell(index, activePlayer);
         var winner = isGameOver();
         if (winner[0]) {
             updateCellOfOpponent(index, window.activePlayer);
-            debugger
+            //debugger
             showWinnerMessage(winner);
             var $connectionResult = $('#player-status');
             $connectionResult.text("Game Over; Restart the Game");
 
             if (_status.requesterUserId === ticTacToeHub.connection.id) {
-                debugger
+                //debugger
                 $("#restartGame").show();
             }
             canvas.removeEventListener("click", cellOnClick, false);
             $("body").off("click", "tr.getrow");
-            ticTacToeHub.server.removeGroup(_status.requesterUserId, _status.requesterName, _status.groupName).done(function () {
-                console.log("ticTacToeHub.server.removeGroup - successful ");
-                // connectedToOpponent = true;
-            }).fail(function () {
-                console.log("ticTacToeHub.server.removeGroup - failed");
-            });
+
+            //TO REMOVE GROUP
+            ////ticTacToeHub.server.removeGroup(_status.requesterUserId, _status.requesterName, _status.groupName).done(function () {
+            ////    console.log("ticTacToeHub.server.removeGroup - successful ");
+            ////    // connectedToOpponent = true;
+            ////}).fail(function () {
+            ////    console.log("ticTacToeHub.server.removeGroup - failed");
+            ////});
             // clearStatus();
             ticTacToeHub.server.OnlineUserList().done(function () {
                 console.log("ticTacToeHub.server.updateOnlineUsers - successful " + ticTacToeHub.hubName);
@@ -583,8 +603,16 @@ function updateCellOfOpponent(index, activePlayer) {
     });
 }
 
-function makeMoveByOpponentPlayer(index, activePlayer, groupName) {
+function checkAlive() {
+    ticTacToeHub.server.checkAlive(ticTacToeHub.connection.id, _status.groupName).done(function () {
+        console.log(" ticTacToeHub.server.checkAlive - successful");
+    }).fail(function () {
+        console.log(" ticTacToeHub.sserver.checkAlive - failed");
+    });
+}
 
+function makeMoveByOpponentPlayer(index, activePlayer, groupName) {
+    //debugger
     ticTacToeHub.server.playYourTurn(index, activePlayer, groupName).done(function () {
         console.log("ticTacToeHub.server.playYourTurn - successful");
         // connectedToOpponent = true;
@@ -594,7 +622,7 @@ function makeMoveByOpponentPlayer(index, activePlayer, groupName) {
 }
 
 function isGameOver() {
-    //debugger
+    ////debugger
     var winner = playerType.NONE;
     var isGameOver = true;
 
